@@ -59,7 +59,9 @@ const HomeScreen = () => {
                 "postgres_changes",
                 { event: "*", schema: "public", table: "todos" },
                 async () => {
-                    await fetchTodos();
+                    if(userId) {
+                        await fetchTodos();
+                    }
                 }
             )
             .subscribe();
