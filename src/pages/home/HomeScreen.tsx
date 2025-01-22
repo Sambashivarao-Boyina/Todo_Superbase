@@ -11,13 +11,12 @@ interface Task{
 
 const HomeScreen = () => {
     const [todos, setTodos] = useState<Todo[]>([]);
-
-    const [loading, setLoading] = useState<boolean>(false)
+    const [loading, setLoading] = useState<boolean>(false);
     const [userId, setUserId] = useState<string>("");
-
     const [addTaskPopup, setAddTaskPopup] = useState(false);
 
-    const fetchTodos = async()=> {
+    const fetchTodos = async () => {
+        if (!userId) return; // Prevent fetching if userId is not set
         setLoading(true);
         const { data, error } = await supabase
             .from("todos")
@@ -29,30 +28,31 @@ const HomeScreen = () => {
             alert(error.message);
         }
 
-        if(data) {
-            
+        if (data) {
             setTodos(data as Todo[]);
         }
 
         setLoading(false);
-    }
+    };
 
-   
-    useEffect(()=>{
-        const laodUser = async() => {
-            const {data :{user}} = await supabase.auth.getUser();
+    useEffect(() => {
+        const loadUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
 
-            if(user) {
+            if (user) {
                 setUserId(user.id);
-                
-               
             }
-        }  
-        laodUser()
-        
-        
+        };
+        loadUser();
+    }, []);
 
-         // Subscribe to realtime updates
+    useEffect(() => {
+        if (!userId) return;
+
+        fetchTodos();
+
+        
+                 // Subscribe to realtime updates
         const subscription = supabase
             .channel("todos-realtime")
             .on(
@@ -71,45 +71,40 @@ const HomeScreen = () => {
             supabase.removeChannel(subscription);
         };    
 
-    },[])
-
-    useEffect(()=>{
-        if(userId && userId.length ) {
-            fetchTodos();
-        }
-    },[userId])
-
+    }, [userId]); 
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center ">
             <div className="absolute top-12 right-2 z-0">
-            <Logout />
+                <Logout />
             </div>
 
-        
-
-            <div className="flex flex-col p-4 rounded-lg border-2 shadow-sm w-3/4 md:w-1/2 lg:w-1/3  drop-shadow-sm">
-                 <div className='w-full'>
-                    <p className='font-semibold text-center text-lg'>Tasks</p>
-                    {
-                        loading && <p className='text-center p-2'>Loading...</p>
-                    }
-                    {
-                        todos && todos.length ?
-                            todos.map((todo) => <Task todo={todo} />)
-                        : null
-                    }
+            <div className="flex flex-col p-4 rounded-lg border-2 shadow-sm w-3/4 md:w-1/2 lg:w-1/3 drop-shadow-sm">
+                <div className="w-full">
+                    <p className="font-semibold text-center text-lg">Tasks</p>
+                    {loading && <p className="text-center p-2">Loading...</p>}
+                    {todos && todos.length
+                        ? todos.map((todo) => <Task key={todo.id} todo={todo} />)
+                        : <p className="text-center p-2">No tasks found.</p>}
                 </div>
-                <button onClick={()=> setAddTaskPopup(true)} className="bg-blue-600 p-2 rounded-md text-white font-semibold">
+                <button
+                    onClick={() => setAddTaskPopup(true)}
+                    className="bg-blue-600 p-2 rounded-md text-white font-semibold"
+                >
                     Add Todo
                 </button>
             </div>
 
             {addTaskPopup && userId ? (
-                <AddTodoPopup userId={userId} addTaskPopup={addTaskPopup} setTodos={setTodos} setAddTaskPopup={setAddTaskPopup}/>
+                <AddTodoPopup
+                    userId={userId}
+                    addTaskPopup={addTaskPopup}
+                    setTodos={setTodos}
+                    setAddTaskPopup={setAddTaskPopup}
+                />
             ) : null}
         </div>
     );
-}
+};
 
-export default HomeScreen
+export default HomeScreen;

@@ -9,7 +9,7 @@ import Wrapper from './pages/wrapper/Wrapper'
 function App() {
    
     return (
-       <div className='w-full h-screen'>
+       <div className='w-screen h-screen'>
             <Topbar/>
             <div className='w-full h-full' >
                 <Routes>

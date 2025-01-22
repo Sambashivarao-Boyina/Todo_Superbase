@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Todo App",
+  "version": "1.0",
+  "description": "A Todo App Chrome Extension",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": [],
+  "host_permissions": ["https://*.supabase.co/*"]
+}
